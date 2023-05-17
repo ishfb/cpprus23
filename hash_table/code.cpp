@@ -15,21 +15,32 @@ struct Stats {
   float max_load_factor;
 };
 
+struct NonuniformHash {
+  size_t operator()(int x) const {
+    if (x % 3 == 0) {
+      return 3;
+    }
+    return std::hash<int>()(x);
+  }
+};
+
 int main(int arc, char* argv[]) {
   unordered_set<int> numbers;
   vector<Stats> stats;
   vector<size_t> insert_durations;
-  int item_count = atoi(argv[1]);
-  numbers.max_load_factor(atoi(argv[2]) / 10.0);
-  for (int i = 0; i < 240; ++i) {
-    numbers.insert(1'000'000 + i);
-  }
+  const int item_count = atoi(argv[1]);
+  const float max_load_factor = atoi(argv[2]) / 10.0;
+  numbers.max_load_factor(max_load_factor);
+  // for (int i = 0; i < 240; ++i) {
+  //   numbers.insert(1'000'000 + i);
+  // }
   for (int i = 0; i < item_count; ++i) {
     auto start = std::chrono::high_resolution_clock::now();
     numbers.insert(i);
     insert_durations.push_back(
         std::chrono::duration_cast<std::chrono::nanoseconds>(
-            std::chrono::high_resolution_clock::now() - start).count());
+            std::chrono::high_resolution_clock::now() - start)
+            .count());
     stats.push_back({.size = numbers.size(),
                      .bucket_count = numbers.bucket_count(),
                      .load_factor = numbers.load_factor(),
@@ -67,7 +78,25 @@ int main(int arc, char* argv[]) {
     ofstream out(fname.str());
     out << "iterations,duration_ns,bucket_count\n";
     for (size_t i = 0; i < insert_durations.size(); ++i) {
-      out << i + 1 << ',' << insert_durations[i] << ',' << stats[i].bucket_count << '\n';
+      out << i + 1 << ',' << insert_durations[i] << ',' << stats[i].bucket_count
+          << '\n';
+    }
+  }
+  {
+    std::unordered_set<int, NonuniformHash> numbers;
+    numbers.max_load_factor(max_load_factor);
+
+    for (int i = 0; i < item_count; ++i) {
+      numbers.insert(i);
+    }
+    ostringstream fname;
+    fname << "non_uniform_bucket_sizes"
+          << "_items_" << item_count << "_max_load_factor_" << fixed
+          << setprecision(1) << numbers.max_load_factor() << ".csv";
+    ofstream out(fname.str());
+    out << "bucket_num,bucket_size\n";
+    for (size_t i = 0; i < numbers.bucket_count(); ++i) {
+      out << i + 1 << ',' << numbers.bucket_size(i) << '\n';
     }
   }
 }
