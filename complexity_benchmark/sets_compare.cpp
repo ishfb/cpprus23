@@ -12,7 +12,7 @@
 using namespace std;
 
 template <typename RandomEngine>
-std::vector<int> TestData(size_t size, RandomEngine& re) {
+std::vector<int> PositiveRandomInts(size_t size, RandomEngine& re) {
   std::uniform_int_distribution<int> gen(1, 10'000'000);
   vector<int> r(size);
   for (int& x : r) {
@@ -24,7 +24,7 @@ std::vector<int> TestData(size_t size, RandomEngine& re) {
 template <typename Set>
 void Find(benchmark::State& state) {
   std::default_random_engine re(20230518);
-  const auto values = TestData(state.range(0), re);
+  const vector<int> values = PositiveRandomInts(state.range(0), re);
   Set sud(values.begin(), values.end());
 
   std::uniform_int_distribution<size_t> take_absent(1, 100);
