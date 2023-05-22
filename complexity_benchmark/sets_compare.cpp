@@ -29,16 +29,14 @@ void Find(benchmark::State& state) {
 
   std::uniform_int_distribution<size_t> take_absent(1, 100);
   for (auto _ : state) {
-    for (int x : values) {
-      if (x % 2 == 0) {
-        x = -x;
-      }
-      auto it = sud.find(x);
-      benchmark::DoNotOptimize(it);
+    int x = values.front();
+    if (take_absent(re) > 50) {
+      x = -x;
     }
+    auto it = sud.find(x);
+    benchmark::DoNotOptimize(it);
   }
   state.SetComplexityN(values.size());
-  state.SetItemsProcessed(values.size() * state.iterations());
 }
 
 // Register the function as a benchmark
